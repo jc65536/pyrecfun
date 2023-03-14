@@ -1,27 +1,24 @@
 #!/usr/bin/env python3
 
 import asyncio
-from asyncio import AbstractEventLoop
 from typing import Callable
 
 
 def recursive(f: Callable[[int], int]):
-    loop: AbstractEventLoop
+
+    async def af(x: int):
+        return f(x)
 
     def wrappedf(fut: asyncio.Future[int]):
         x = fut.result()
-        res = f(x)
-        fut = loop.create_future()
-        fut.add_done_callback(wrappedf)
-        fut.set_result(res)
-        return res
+        task = asyncio.create_task(af(x))
+        task.add_done_callback(wrappedf)
+        return task
 
     def callf(x: int):
-        nonlocal loop
-        loop = asyncio.get_event_loop()
-        fut = loop.create_future()
-        fut.set_result(x)
-        wrappedf(fut)
+        task = asyncio.create_task(af(x))
+        task.add_done_callback(wrappedf)
+        return task
 
     return callf
 
@@ -32,9 +29,14 @@ def f(x: int):
     return x + 1
 
 
-async def main():
-    f(0)
+async def forever():
     while True:
         await asyncio.sleep(10)
+
+
+async def main():
+    f(0)
+    await forever()
+
 
 asyncio.run(main())
