@@ -1,23 +1,27 @@
 #!/usr/bin/env python3
 
 import asyncio
+from asyncio import AbstractEventLoop
 from typing import Callable
 
 
 def recursive(f: Callable[[int], int]):
+    loop: AbstractEventLoop
 
-    def wrap(fut: asyncio.Future[int]):
+    def wrappedf(fut: asyncio.Future[int]):
         x = fut.result()
         res = f(x)
-        fut = asyncio.Future()
-        fut.add_done_callback(wrap)
+        fut = loop.create_future()
+        fut.add_done_callback(wrappedf)
         fut.set_result(res)
         return res
 
     def callf(x: int):
-        fut = asyncio.Future()
+        nonlocal loop
+        loop = asyncio.get_event_loop()
+        fut = loop.create_future()
         fut.set_result(x)
-        wrap(fut)
+        wrappedf(fut)
 
     return callf
 
