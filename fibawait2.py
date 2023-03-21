@@ -4,18 +4,12 @@ import asyncio
 from typing import Callable, Coroutine, Any
 
 
-def recursive(f: Callable[[int], Coroutine[Any, Any, int]]):
-    res = 0
+def recursive(f: Callable[[int], Coroutine[Any, Any, Any]]):
 
     async def callf(x: int):
-        nonlocal res
-        res = await f(x)
+        return await asyncio.create_task(f(x))
 
-    async def wait_task(x: int):
-        await asyncio.create_task(callf(x))
-        return res
-
-    return wait_task
+    return callf
 
 
 m: dict[int, int] = {}
