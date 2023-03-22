@@ -23,12 +23,18 @@
 # with a coroutine in the arguments. My assumption that @f would evaluate f(x)
 # first was incorrect.
 #
+# In reality, we do not enter the body of f when we call f(x). Instead, it just
+# returns a coroutine. It's when we await the coroutine that the body of f is
+# actually executed.
+#
+# https://stackoverflow.com/questions/75808091/python-skips-coroutine-evaluation
+#
 # Pros
 # - Simple!
 # - Much more efficient than the fibawait.py implementation
 #
 # Cons
-# - I don't have a good explanation of how it works
+# - Not optimized for tail recursion
 
 import asyncio
 from typing import Callable, Coroutine
